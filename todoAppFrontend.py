@@ -6,110 +6,113 @@ user can add, delete, update and search task
 
 # required imports
 from tkinter import *
-from todoAppBackend import *
+from todoAppBackend import Database
 from tkinter.messagebox import showerror
 
+class Todo:
+	def __init__(self):
+		self.window= Tk()
+		
+		try:
+			self.databaseObj = Database()
+		except Exception:
+			self.window.destroy()
+			showerror("Error","Something went wrong try again later.")
+		
+		# Label Frame
+		self.frame= LabelFrame(self.window,padx=15, pady=15)
+		self.frame.pack(padx=5, pady=5)
 
-window= Tk()
+		# task name and labe view
+		self.task_name_label = Label(self.frame,text="Task Name")
+		self.task_name_label.grid(row=0, column=0)
 
-def view_all_command():
-	sno=1
-	task_list.delete(0,END) # clear the list
-	for row in view_all_task():
-		task_list.insert(END, (sno, row[1]) )
-		sno+=1
-
-def search_command():
-	task_list.delete(0,END)
-	for row in search_task( str(task_area.get()) ):
-		task_list.insert(END, row)
-
-def add_command():
-	if str(task_area.get())!="":
-		add_task(str(task_area.get()))
-	view_all_command()
-
-def delete_command():
-	try:
-		delete_task(selected_row[0])
-		task_area.delete(0,END)
-	except Exception:
-		pass
-	finally:
-		view_all_command()
-
-def update_command():
-	try:
-		update_task(int(selected_row[0]),str(task_area.get()))
-	except Exception:
-		pass
-	finally:
-		view_all_command()
-
-def get_selected_row(event):
-	try:
-		global selected_row
-		index = task_list.curselection()
-		selected_row = task_list.get(index)
-		task_area.delete(0,END)
-		task_area.insert(END,selected_row[1])
-	except Exception:
-		pass
-
-def initDB():
-	try:
-		connectDB()
-	except Exception:
-		window.destroy()
-		showerror("Error","Something went wrong try again later.")
+		self.task_area = Entry(self.frame)
+		self.task_area.grid(row=0,column=1)
 
 
-# Label Frame
-frame= LabelFrame(window,padx=15, pady=15)
-frame.pack(padx=5, pady=5)
+		# task list view
+		self.task_list = Listbox(self.frame, height=8, width= 30)
+		self.task_list.grid(row=1,column=0, rowspan=4, columnspan=2)
 
-# task name and labe view
-task_name_label = Label(frame,text="Task Name")
-task_name_label.grid(row=0, column=0)
+		self.task_list_scroll= Scrollbar(self.frame)
+		self.task_list_scroll.grid(row=1,column=2,rowspan=6)
 
-task_area = Entry(frame)
-task_area.grid(row=0,column=1)
+		self.task_list.configure(yscrollcommand=self.task_list_scroll.set)
+		self.task_list_scroll.configure(command=self.task_list.yview)
 
-
-# task list view
-task_list = Listbox(frame, height=8, width= 30)
-task_list.grid(row=1,column=0, rowspan=4, columnspan=2)
-
-task_list_scroll= Scrollbar(frame)
-task_list_scroll.grid(row=1,column=2,rowspan=6)
-
-task_list.configure(yscrollcommand=task_list_scroll.set)
-task_list_scroll.configure(command=task_list.yview)
-
-task_list.bind('<<ListboxSelect>>', get_selected_row)
+		self.task_list.bind('<<ListboxSelect>>', self.get_selected_row)
 
 
-# button views
-add_button = Button(frame, text="Add Task", command=add_command)
-add_button.configure(width=10)
-add_button.grid(row=0, column=3)
+		# button views
+		self.add_button = Button(self.frame, text="Add Task", command=self.add_command)
+		self.add_button.configure(width=10)
+		self.add_button.grid(row=0, column=3)
 
-delete_button = Button(frame, text="Delete Task", command=delete_command)
-delete_button.configure(width=10)
-delete_button.grid(row=1, column=3, pady=2)
+		self.delete_button = Button(self.frame, text="Delete Task", command=self.delete_command)
+		self.delete_button.configure(width=10)
+		self.delete_button.grid(row=1, column=3, pady=2)
 
-update_button = Button(frame, text="Update Task", command=update_command)
-update_button.configure(width=10)
-update_button.grid(row=2, column=3)
+		self.update_button = Button(self.frame, text="Update Task", command=self.update_command)
+		self.update_button.configure(width=10)
+		self.update_button.grid(row=2, column=3)
 
-search_button = Button(frame, text="Search Task", command=search_command)
-search_button.configure(width=10)
-search_button.grid(row=3, column=3)
+		self.search_button = Button(self.frame, text="Search Task", command=self.search_command)
+		self.search_button.configure(width=10)
+		self.search_button.grid(row=3, column=3)
 
-view_all_button = Button(frame, text="View All Task", command=view_all_command)
-view_all_button.configure(width=10)
-view_all_button.grid(row=4, column=3)
-view_all_command()
+		self.view_all_button = Button(self.frame, text="View All Task", command=self.view_all_command)
+		self.view_all_button.configure(width=10)
+		self.view_all_button.grid(row=4, column=3)
+		
+		self.window.mainloop()
 
-window.mainloop()
-initDB()
+	def view_all_command(self):
+		sno=1
+		self.task_list.delete(0,END) # clear the list
+		for row in self.databaseObj.view_all_task():
+			self.task_list.insert(END, (sno, row[1]) )
+			sno+=1
+
+	def search_command(self):
+		self.task_list.delete(0,END)
+		for row in self.databaseObj.search_task( str(self.task_area.get()) ):
+			self.task_list.insert(END, row)
+
+	def add_command(self):
+		if str(self.task_area.get())!="":
+			self.databaseObj.add_task(str(self.task_area.get()))
+		self.view_all_command()
+
+	def delete_command(self):
+		try:
+			self.databaseObj.delete_task(selected_row[0])
+			self.task_area.delete(0,END)
+		except Exception:
+			pass
+		finally:
+			self.view_all_command()
+
+	def update_command(self):
+		try:
+			self.databaseObj.update_task(int(selected_row[0]),str(self.task_area.get()))
+		except Exception:
+			pass
+		finally:
+			self.view_all_command()
+
+	def get_selected_row(self,event):
+		try:
+			global selected_row
+			index = self.task_list.curselection()
+			selected_row = self.task_list.get(index)
+			self.task_area.delete(0,END)
+			self.task_area.insert(END,selected_row[1])
+		except Exception:
+			pass
+
+
+
+
+if __name__ == '__main__':
+	todo= Todo()
