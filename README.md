@@ -8,3 +8,6 @@
 
 
 ![alt text](https://github.com/StromGrail/Todo_windows_app_Tkinter/blob/master/applicationView.png?raw=true)
+
+
+### instructions.txt will help in creating the exe file of the application
